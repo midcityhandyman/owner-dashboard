@@ -1,0 +1,41 @@
+Owner dashboard demo
+Data source: fake (seed 42), anchor 2026-W40, 26 weeks
+Synthetic records: 631 leads, 99 jobs, 29 change orders, 72 review requests
+
+== Latest week (default view) ==
+Week 2026-W40  (Sep 28 to Oct 4, 2026)
+Trend: 12 weeks, 2026-W29 to 2026-W40
+
+Metric                   Value  vs last week          Trend         Detail
+--------------------------------------------------------------------------------------------------------
+Leads                       21  -1 (down bad)         ▆▇█▃▃▇▆▁▃▅▂▁  18 of 21 got a response
+Speed to lead           12 min  +4 min (up bad)       ▁▂▁▁▁▁▁█▁▁▁▁  median over 18 responded leads
+Booked                       7  -3 (down bad)         █▂▃▄▁▅▃▅▄▁▃▁  21 new leads the same week
+Close rate               42.9%  -12.7 pts (down bad)  ▄▇▃▃▁█▂▄▅▆▆▄  3 won of 7 decided
+Revenue                 $7,475  -7.7% (down bad)      █▄▂▂▁▂▂▁▁▃▁▁  3 jobs completed
+Job margin               43.9%  +12.0 pts (up good)   ▄▅█▅▅▁▄▄▆█▄█  across 3 completed jobs
+Open change orders           3  0 (flat)              ▇▁▅▅▃▁▃▁█▃▃▃  $4,425 waiting on a decision
+Review rate              33.3%  -16.7 pts (down bad)  ▆▃▂█▅▁▇▅▁▂▅▃  1 review from 3 requests
+
+== Week picker: jump back 8 weeks to 2026-W32 ==
+Week 2026-W32  (Aug 3 to Aug 9, 2026)
+Trend: 12 weeks, 2026-W21 to 2026-W32
+
+Metric                   Value  vs last week          Trend         Detail
+--------------------------------------------------------------------------------------------------------
+Leads                       23  -5 (down bad)         ▂▁█▆▇█▇▄▃▄▅▁  22 of 23 got a response
+Speed to lead           13 min  +3 min (up bad)       ▃▄▆▁▇▃▇▃▃█▁▅  median over 22 responded leads
+Booked                      11  +2 (up good)          ▃▂▄▅█▄▆▅▇▁▁▃  23 new leads the same week
+Close rate               33.3%  -3.0 pts (down bad)   ▁▄▄█▆▅▄▁▂▅▁▁  3 won of 9 decided
+Revenue                $20,925  -25.5% (down bad)     ▁▁▃▂▃▅▄▃█▄▃▂  3 jobs completed
+Job margin               34.0%  -7.7 pts (down bad)    ▁▆▅▄▃▇▆▄▅█▄  across 3 completed jobs
+Open change orders           4  0 (flat)              ▁▄▅▅▅▄█▇█▄▇▇  $6,200 waiting on a decision
+Review rate             100.0%  +80.0 pts (up good)    █▁▃▂▅▃▃▆▃▂█  2 reviews from 2 requests
+
+== Week picker: a week with no data falls back ==
+Requested 2031-W01, showing 2026-W40. No data for 2031-W01. Showing the latest week instead.
+
+== Determinism check ==
+Run 1 fingerprint: 830b97f4c97758fa
+Run 2 fingerprint: 830b97f4c97758fa
+Identical: the fake data source is deterministic.
