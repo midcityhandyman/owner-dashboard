@@ -1,5 +1,7 @@
 # owner-dashboard
 
+**Live demo:** https://owner-dashboard-chi-nine.vercel.app (seeded fake data, no login)
+
 A service business owner needs eight numbers every Monday, and they usually live in five different tools.
 This is one page that computes them from raw records, shows the trend, and lets the owner step back week by week.
 
