@@ -3,7 +3,7 @@
 // against the previous week and a trend series for the sparkline.
 
 import type { DataSource } from "./data/adapter";
-import { formatDelta, formatMoney, formatValue, type MetricKind } from "./format";
+import { formatDelta, formatMoney, formatValue, roundsToZero, type MetricKind } from "./format";
 import { computeWeekMetrics } from "./metrics";
 import type { WeekMetrics } from "./types";
 import { isWeekId, shiftWeek, trailingWeeks, weekLabel, weekRange } from "./weeks";
@@ -150,15 +150,21 @@ export interface DashboardOptions {
 
 export const DEFAULT_TREND_LENGTH = 12;
 
-/** Compares two values and says which way the number moved and whether that is good. */
+/**
+ * Compares two values and says which way the number moved and whether that is good.
+ * When a kind is given, a change too small to show at display precision is flat:
+ * a median that moved half a minute is not good or bad news.
+ */
 export function compare(
   current: number | null,
   previous: number | null,
   betterWhen: "higher" | "lower",
+  kind?: MetricKind,
 ): { delta: number | null; direction: Direction; good: boolean | null } {
   if (current === null || previous === null) return { delta: null, direction: "none", good: null };
   const delta = current - previous;
   if (Math.abs(delta) < 1e-9) return { delta: 0, direction: "flat", good: null };
+  if (kind && roundsToZero(kind, current, previous)) return { delta, direction: "flat", good: null };
   const direction: Direction = delta > 0 ? "up" : "down";
   return { delta, direction, good: (direction === "up") === (betterWhen === "higher") };
 }
@@ -168,7 +174,7 @@ export function buildMetricViews(byWeek: WeekMetrics[], previous: WeekMetrics | 
   return METRICS.map((def) => {
     const value = def.value(current);
     const before = previous ? def.value(previous) : null;
-    const change = compare(value, before, def.betterWhen);
+    const change = compare(value, before, def.betterWhen, def.kind);
     return {
       key: def.key,
       label: def.label,

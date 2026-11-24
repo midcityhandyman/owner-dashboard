@@ -128,7 +128,27 @@ describe("createSupabaseSource", () => {
     const source = createSupabaseSource(config({ jobs }, calls, { pageSize: 2 }));
     const records = await source.fetchRecords(weekRange("2026-W40"));
     expect(records.jobs.map((j) => j.id)).toEqual(["j0", "j1", "j2", "j3", "j4"]);
-    expect(calls.filter((c) => c.table === "jobs").map((c) => c.params.get("offset"))).toEqual(["0", "2", "4"]);
+    expect(calls.filter((c) => c.table === "jobs").map((c) => c.params.get("offset"))).toEqual(["0", "2", "4", "5"]);
+  });
+
+  it("keeps reading when the server caps a page below the requested size", async () => {
+    // A project can cap rows per response. A short page must not end the read,
+    // or a busy week would silently lose jobs and under-report revenue.
+    const calls: Call[] = [];
+    const jobs = Array.from({ length: 7 }, (_, i) => ({ id: `j${i}`, completed_at: "2026-09-30T10:00:00Z", revenue: 100, cost: 50 }));
+    const serverCap = 3;
+    const capped = (async (input: RequestInfo | URL) => {
+      const url = new URL(String(input));
+      const table = url.pathname.split("/").pop() as string;
+      const offset = Number(url.searchParams.get("offset"));
+      calls.push({ table, params: url.searchParams, headers: {} });
+      const rows = table === "jobs" ? jobs.slice(offset, offset + serverCap) : [];
+      return new Response(JSON.stringify(rows), { status: 200 });
+    }) as typeof fetch;
+    const source = createSupabaseSource({ url: "https://project.example.com", key: "test-key-not-real", fetchImpl: capped, pageSize: 1000 });
+    const records = await source.fetchRecords(weekRange("2026-W40"));
+    expect(records.jobs).toHaveLength(7);
+    expect(calls.filter((c) => c.table === "jobs").map((c) => c.params.get("offset"))).toEqual(["0", "3", "6", "7"]);
   });
 
   it("surfaces http errors", async () => {

@@ -45,6 +45,25 @@ export function formatValue(kind: MetricKind, value: number | null): string {
 }
 
 /**
+ * True when a change is too small to show at the precision formatDelta prints.
+ * The dashboard treats such a change as flat, so a card never reads
+ * "0 min" next to an up or down arrow.
+ */
+export function roundsToZero(kind: MetricKind, current: number, previous: number): boolean {
+  const delta = current - previous;
+  switch (kind) {
+    case "count":
+      return delta === 0;
+    case "minutes":
+      return Math.round(delta) === 0;
+    case "percent":
+      return Math.abs(delta * 100) < 0.05;
+    case "money":
+      return previous === 0 ? delta === 0 : Math.abs((delta / previous) * 100) < 0.05;
+  }
+}
+
+/**
  * Week over week change. Counts show the absolute change, money shows percent
  * change, rates show percentage points and durations show minutes.
  */

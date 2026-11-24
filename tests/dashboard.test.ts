@@ -41,6 +41,25 @@ describe("compare", () => {
     expect(compare(null, 5, "higher")).toEqual({ delta: null, direction: "none", good: null });
     expect(compare(5, null, "lower")).toEqual({ delta: null, direction: "none", good: null });
   });
+
+  it("treats a change that displays as zero as flat, not as good or bad news", () => {
+    // 12.5 to 13.0 minutes prints as "0 min", so it must not carry an arrow.
+    expect(compare(12.5, 13, "lower", "minutes")).toEqual({ delta: -0.5, direction: "flat", good: null });
+    expect(compare(0.5001, 0.5, "higher", "percent").direction).toBe("flat");
+    expect(compare(10_001, 10_000, "higher", "money").direction).toBe("flat");
+    // A change that does show keeps its direction.
+    expect(compare(14, 12.4, "lower", "minutes")).toEqual({ delta: 14 - 12.4, direction: "up", good: false });
+    expect(compare(0, 7475, "higher", "money").direction).toBe("down");
+  });
+
+  it("never pairs a zero change with an up or down verdict in the seeded data", async () => {
+    for (const id of await source.listWeeks()) {
+      const view = await buildDashboard(source, { week: id });
+      for (const metric of view.metrics) {
+        if (/^(0|0 min|0\.0 pts|0\.0%)$/.test(metric.deltaDisplay)) expect(metric.direction).toBe("flat");
+      }
+    }
+  });
 });
 
 describe("buildMetricViews", () => {

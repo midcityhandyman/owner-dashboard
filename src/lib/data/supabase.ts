@@ -111,9 +111,9 @@ export function createSupabaseSource(options: SupabaseOptions): DataSource {
 
   async function select(table: string, filters: Record<string, string>, limit?: number): Promise<Row[]> {
     const rows: Row[] = [];
-    for (let offset = 0; ; offset += pageSize) {
+    for (;;) {
       const size = limit ?? pageSize;
-      const query = new URLSearchParams({ select: "*", ...filters, limit: String(size), offset: String(offset) });
+      const query = new URLSearchParams({ select: "*", ...filters, limit: String(size), offset: String(rows.length) });
       const response = await doFetch(`${base}/rest/v1/${table}?${query.toString()}`, {
         headers: { apikey: options.key, Authorization: `Bearer ${options.key}`, Accept: "application/json" },
         cache: "no-store",
@@ -121,7 +121,10 @@ export function createSupabaseSource(options: SupabaseOptions): DataSource {
       if (!response.ok) throw new Error(`Supabase request for ${table} failed with status ${response.status}`);
       const page = (await response.json()) as Row[];
       rows.push(...page);
-      if (limit !== undefined || page.length < size) return rows;
+      // A short page is not proof of the end: a project can cap rows per
+      // response below pageSize. Only an empty page ends the read, so a cap
+      // can never silently drop jobs from a revenue total.
+      if (limit !== undefined || page.length === 0) return rows;
     }
   }
 
